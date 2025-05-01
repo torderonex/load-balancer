@@ -34,7 +34,7 @@ func (b *Balancer) AddBackends(urls []string) {
 			slog.Error("Ошибка при парсинге URL", sl.Err(err))
 			continue
 		}
-		b.backends = append(b.backends, &backend.Backend{URL: tmp})
+		b.backends = append(b.backends, backend.NewBackend(tmp))
 	}
 }
 
@@ -45,7 +45,6 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info(fmt.Sprintf("Получен запрос: %s %s от %s", r.Method, r.URL.Path, clientID))
 
-	// Получение бэкенда по стратегии
 	backend := b.strategy.NextBackend(b.backends)
 	if backend == nil {
 		slog.Error("Нет доступных бэкендов")

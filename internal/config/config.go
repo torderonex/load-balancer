@@ -28,8 +28,8 @@ type HttpServer struct {
 }
 
 type HealthCheck struct {
-	Enabled       bool `yaml:"enabled" env:"HEALTH_CHECK_ENABLED" env-default:"true"`
-	CheckInterval int  `yaml:"check_interval" env:"HEALTH_CHECK_CHECK_INTERVAL" env-default:"10"`
+	Enabled       bool          `yaml:"enabled" env:"HEALTH_CHECK_ENABLED" env-default:"true"`
+	CheckInterval time.Duration `yaml:"check_interval" env:"HEALTH_CHECK_CHECK_INTERVAL" env-default:"10s"`
 }
 
 type RateLimiter struct {

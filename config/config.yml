@@ -9,7 +9,7 @@ rate_limiter:
   capacity: 100
 health_check:
   enabled: true
-  check_interval: 10
+  check_interval: 10s
 balancer:
   backends:
     - http://localhost:6969

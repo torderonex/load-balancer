@@ -25,7 +25,7 @@ func main() {
 	balancer := balancer.NewBalancer(config.Balancer.Strategy)
 	balancer.AddBackends(config.Balancer.Backends)
 	//health check goroutine start
-
+	go balancer.StartHealthCheck(config.HealthCheck.CheckInterval)
 	//ratelimit token goroutine start
 
 	//http server start
