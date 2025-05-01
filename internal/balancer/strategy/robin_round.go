@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"log/slog"
 	"sync/atomic"
 
 	"github.com/torderonex/load-balancer/internal/backend"
@@ -26,6 +27,7 @@ func (rr *roundRobinStrategy) NextBackend(backends []*backend.Backend) *backend.
 	for range len(backends) {
 		rr.current.Add(1)
 		idx := rr.current.Load() % int32(len(backends))
+		slog.Debug("idx", "idx", idx)
 		if backends[idx].IsAlive() {
 			return backends[idx]
 		}
