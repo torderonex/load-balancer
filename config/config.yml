@@ -1,0 +1,18 @@
+logger:
+  level: debug
+http_server:
+  port: 8080
+  read_timeout: 10s
+rate_limiter:
+  enabled: true
+  default_rate: 100
+  capacity: 100
+health_check:
+  enabled: true
+  check_interval: 10
+balancer:
+  backends:
+    - http://localhost:6969
+    - http://localhost:6970
+    - http://localhost:6971
+  strategy: round_robin
