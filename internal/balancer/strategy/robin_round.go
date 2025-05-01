@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/torderonex/load-balancer/internal/backend"
+	"github.com/torderonex/load-balancer/internal/model"
 )
 
 type roundRobinStrategy struct {
@@ -17,7 +17,7 @@ func NewRoundRobinStrategy() Strategy {
 	}
 }
 
-func (rr *roundRobinStrategy) NextBackend(backends []*backend.Backend) *backend.Backend {
+func (rr *roundRobinStrategy) NextBackend(backends []*model.Backend) *model.Backend {
 	if len(backends) == 0 {
 		return nil
 	}

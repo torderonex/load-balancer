@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/torderonex/load-balancer/internal/backend"
+	"github.com/torderonex/load-balancer/internal/model"
 	"github.com/torderonex/load-balancer/pkg/sl"
 )
 
 type Strategy interface {
-	NextBackend(backends []*backend.Backend) *backend.Backend
+	NextBackend(backends []*model.Backend) *model.Backend
 }
 
 func NewStrategy(strategy string) Strategy {

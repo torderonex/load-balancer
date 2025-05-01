@@ -9,20 +9,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/torderonex/load-balancer/internal/backend"
 	"github.com/torderonex/load-balancer/internal/balancer/strategy"
+	"github.com/torderonex/load-balancer/internal/limiter"
+	"github.com/torderonex/load-balancer/internal/model"
 	"github.com/torderonex/load-balancer/pkg/sl"
 )
 
 type Balancer struct {
-	backends []*backend.Backend
+	limiter  limiter.Limiter
+	backends []*model.Backend
 	strategy strategy.Strategy
 	proxy    *httputil.ReverseProxy
 	mu       sync.RWMutex
 }
 
-func NewBalancer(strategyName string) *Balancer {
+func NewBalancer(strategyName string, limiter limiter.Limiter) *Balancer {
 	return &Balancer{
+		limiter:  limiter,
 		strategy: strategy.NewStrategy(strategyName),
 	}
 }
@@ -34,14 +37,18 @@ func (b *Balancer) AddBackends(urls []string) {
 			slog.Error("Ошибка при парсинге URL", sl.Err(err))
 			continue
 		}
-		b.backends = append(b.backends, backend.NewBackend(tmp))
+		b.backends = append(b.backends, model.NewBackend(tmp))
 	}
 }
 
 func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	clientID := r.RemoteAddr
 
-	//TODO: Проверка rate limit
+	if !b.limiter.Allow(clientID) {
+		slog.Info(fmt.Sprintf("Клиент %s превысил лимит", clientID))
+		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		return
+	}
 
 	slog.Info(fmt.Sprintf("Получен запрос: %s %s от %s", r.Method, r.URL.Path, clientID))
 
@@ -76,7 +83,7 @@ func (b *Balancer) StartHealthCheck(interval time.Duration) {
 			slog.Debug("Проверка доступности бэкендов")
 			b.mu.RLock()
 			for _, back := range b.backends {
-				go func(b *backend.Backend) {
+				go func(b *model.Backend) {
 					alive := b.CheckHealth()
 					if b.IsAlive() != alive {
 						slog.Info(fmt.Sprintf("Изменение статуса бэкенда %s: %v -> %v",

@@ -9,7 +9,7 @@ type Storage struct {
 	ClientStorage
 }
 
-func NewStorage() *Storage {
+func New() *Storage {
 	return &Storage{
 		ClientStorage: memory.NewClientStorage(),
 	}

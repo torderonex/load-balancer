@@ -1,14 +1,21 @@
 package limiter
 
 import (
+	"log/slog"
 	"sync"
 	"time"
 
+	"github.com/torderonex/load-balancer/internal/config"
 	"github.com/torderonex/load-balancer/internal/model"
 	"github.com/torderonex/load-balancer/internal/storage"
 )
 
 // Client представляет собой отдельного клиента с собственным bucket токенов
+
+type Limiter interface {
+	Allow(clientID string) bool
+	StartRefill(interval time.Duration)
+}
 
 // TokenBucket основной лимитер, использующий алгоритм Token Bucket
 type TokenBucket struct {
@@ -19,11 +26,11 @@ type TokenBucket struct {
 }
 
 // NewTokenBucket создает новый экземпляр TokenBucket
-func NewTokenBucket(defaultRate, capacity int, storage storage.Storage) *TokenBucket {
+func NewTokenBucket(config *config.RateLimiter, storage *storage.Storage) Limiter {
 	return &TokenBucket{
-		storage:     storage,
-		defaultRate: defaultRate,
-		capacity:    capacity,
+		storage:     storage.ClientStorage,
+		defaultRate: config.DefaultRate,
+		capacity:    config.Capacity,
 	}
 }
 
@@ -32,6 +39,7 @@ func NewTokenBucket(defaultRate, capacity int, storage storage.Storage) *TokenBu
 func (tb *TokenBucket) Allow(clientID string) bool {
 	// Получаем или создаем клиента
 	client, exists := tb.storage.GetClient(clientID)
+	slog.Debug("Проверка клиента", "clientID", clientID, "exists", exists)
 	if !exists {
 		// Новый клиент получает полный bucket
 		client = &model.Client{
@@ -43,7 +51,7 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 		tb.storage.SaveClient(clientID, client)
 		return true
 	}
-
+	slog.Info("client", "client", client)
 	if client.IsBanned {
 		return false
 	}
