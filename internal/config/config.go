@@ -12,7 +12,8 @@ import (
 type Config struct {
 	Logger      Logger      `yaml:"logger"`
 	RateLimiter RateLimiter `yaml:"rate_limit"`
-	HttpServer  HttpServer  `yaml:"http_server"`
+	ProxyServer ProxyServer `yaml:"proxy_server"`
+	ApiServer   ApiServer   `yaml:"api_server"`
 	HealthCheck HealthCheck `yaml:"health_check"`
 	Balancer    Balancer    `yaml:"balancer"`
 }
@@ -22,9 +23,14 @@ type Balancer struct {
 	Strategy string   `yaml:"strategy"`
 }
 
-type HttpServer struct {
-	Port        int           `yaml:"port" env:"HTTP_SERVER_PORT" env-default:"8080"`
-	ReadTimeout time.Duration `yaml:"read_timeout" env:"HTTP_SERVER_READ_TIMEOUT" env-default:"10s"`
+type ProxyServer struct {
+	Port        int           `yaml:"port" env:"PROXY_SERVER_PORT" env-default:"8080"`
+	ReadTimeout time.Duration `yaml:"read_timeout" env:"PROXY_SERVER_READ_TIMEOUT" env-default:"10s"`
+}
+
+type ApiServer struct {
+	Port        int           `yaml:"port" env:"API_SERVER_PORT" env-default:"8081"`
+	ReadTimeout time.Duration `yaml:"read_timeout" env:"API_SERVER_READ_TIMEOUT" env-default:"10s"`
 }
 
 type HealthCheck struct {
