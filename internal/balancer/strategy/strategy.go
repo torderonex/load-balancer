@@ -16,8 +16,10 @@ func NewStrategy(strategy string) Strategy {
 	switch strategy {
 	case "round_robin":
 		return NewRoundRobinStrategy()
+	case "random":
+		return NewRandomStrategy()
 	default:
-		slog.Error("Неизвестная стратегия, используется round_robin", sl.Err(fmt.Errorf("unknown strategy: %s", strategy)))
+		slog.Error("Unknown strategy, using round_robin", sl.Err(fmt.Errorf("unknown strategy: %s", strategy)))
 		return NewRoundRobinStrategy()
 	}
 }
