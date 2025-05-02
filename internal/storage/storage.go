@@ -22,5 +22,4 @@ type ClientStorage interface {
 	GetAllClientIDs() ([]string, error)
 	SetClientRate(clientID string, rate int)
 	SetClientCapacity(clientID string, capacity int)
-	SetClientStatus(clientID string, isBanned bool)
 }

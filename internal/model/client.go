@@ -9,6 +9,5 @@ type Client struct {
 	Tokens     int       // текущее количество токенов
 	Capacity   int       // максимальная емкость bucket
 	Rate       int       // скорость пополнения токенов (токенов в секунду)
-	IsBanned   bool      // флаг, указывающий, заблокирован ли клиент
 	LastRefill time.Time // время последнего пополнения
 }
