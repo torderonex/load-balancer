@@ -107,6 +107,10 @@ func (a *App) Run() {
 		slog.Info("Proxy server stopped gracefully")
 	}
 
+	err := a.storage.Close()
+	if err != nil {
+		slog.Error("Storage close error", sl.Err(err))
+	}
 	slog.Info("Graceful shutdown completed")
 }
 
