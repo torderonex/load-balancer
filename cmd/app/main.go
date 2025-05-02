@@ -31,7 +31,7 @@ func main() {
 	//health check goroutine start
 	go balancer.StartHealthCheck(config.HealthCheck.CheckInterval)
 	//ratelimit token goroutine start
-
+	go limiter.StartRefill(config.RateLimiter.RefillInterval)
 	//http server start
 	server := server.New(strconv.Itoa(config.HttpServer.Port), balancer, config.HttpServer.ReadTimeout)
 	server.Run()

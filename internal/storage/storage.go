@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/torderonex/load-balancer/internal/model"
-	"github.com/torderonex/load-balancer/internal/storage/limiter/memory"
+	"github.com/torderonex/load-balancer/internal/storage/memory"
 )
 
 type Storage struct {
@@ -22,4 +22,5 @@ type ClientStorage interface {
 	GetAllClientIDs() ([]string, error)
 	SetClientRate(clientID string, rate int)
 	SetClientCapacity(clientID string, capacity int)
+	SetClientStatus(clientID string, isBanned bool)
 }

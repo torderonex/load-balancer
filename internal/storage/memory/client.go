@@ -66,3 +66,10 @@ func (ms *clientStorage) SetClientCapacity(clientID string, capacity int) {
 
 	ms.clients[clientID].Capacity = capacity
 }
+
+func (ms *clientStorage) SetClientStatus(clientID string, isBanned bool) {
+	ms.mu.Lock()
+	defer ms.mu.Unlock()
+
+	ms.clients[clientID].IsBanned = isBanned
+}

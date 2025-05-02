@@ -37,7 +37,8 @@ type RateLimiter struct {
 	//tokens per second
 	DefaultRate int `yaml:"default_rate" env:"RATE_LIMITER_DEFAULT_RATE" env-default:"100"`
 	//maximum tokens per server
-	Capacity int `yaml:"capacity" env:"RATE_LIMITER_CAPACITY" env-default:"100"`
+	Capacity       int           `yaml:"capacity" env:"RATE_LIMITER_CAPACITY" env-default:"100"`
+	RefillInterval time.Duration `yaml:"refill_interval" env:"RATE_LIMITER_REFILL_INTERVAL" env-default:"10s"`
 }
 
 type Logger struct {
