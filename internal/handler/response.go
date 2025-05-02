@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -20,3 +21,18 @@ func newErrorResponse(w http.ResponseWriter, r *http.Request, status int, messag
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }
+
+// request errors
+var (
+	ErrMethodNotAllowed = errors.New("method not allowed")
+	ErrInvalidAction    = errors.New("invalid action. Use 'ban' or 'unban'")
+	ErrClientIDRequired = errors.New("client ID is required")
+	ErrCapacityRequired = errors.New("capacity must be greater than 0")
+)
+
+// json parse errors
+var (
+	ErrInvalidContentType = errors.New("invalid content type")
+	ErrReadRequestBody    = errors.New("error reading request body")
+	ErrInvalidJSONFormat  = errors.New("invalid JSON format")
+)

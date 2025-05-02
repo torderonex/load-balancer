@@ -4,3 +4,6 @@ run:
 build:
 	go build -o load-balancer cmd/app/main.go
 
+test:
+	go test -v ./...
+

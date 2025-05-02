@@ -52,9 +52,6 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 		return true
 	}
 	slog.Info("client", "client", client)
-	if client.IsBanned {
-		return false
-	}
 
 	// Проверяем и забираем токен
 	if client.Tokens > 0 {

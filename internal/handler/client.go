@@ -64,7 +64,7 @@ func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Capacity <= 0 {
+	if req.Capacity < 0 {
 		newErrorResponse(w, r, http.StatusBadRequest, ErrCapacityRequired)
 		return
 	}
