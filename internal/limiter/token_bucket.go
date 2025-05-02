@@ -56,17 +56,6 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 		return false
 	}
 
-	// Пополняем токены согласно прошедшему времени
-	now := time.Now()
-	elapsed := now.Sub(client.LastRefill).Seconds()
-	client.LastRefill = now
-
-	// Рассчитываем сколько токенов нужно добавить
-	tokensToAdd := int(elapsed * float64(client.Rate))
-	if tokensToAdd > 0 {
-		client.Tokens = min(client.Tokens+tokensToAdd, client.Capacity)
-	}
-
 	// Проверяем и забираем токен
 	if client.Tokens > 0 {
 		client.Tokens--
