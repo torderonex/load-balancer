@@ -76,6 +76,29 @@ func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
+func (h *Handler) GetClient(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		newErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
+		return
+	}
+
+	clientID := r.URL.Query().Get("clientId")
+	if clientID == "" {
+		newErrorResponse(w, r, http.StatusBadRequest, ErrClientIDRequired)
+		return
+	}
+
+	client, ok := h.storage.GetClient(clientID)
+	if !ok {
+		newErrorResponse(w, r, http.StatusNotFound, ErrClientNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(client)
+}
+
 // parseJSONBody вспомогательная функция для парсинга JSON тела запроса
 func parseJSONBody(r *http.Request, v interface{}) error {
 	contentType := r.Header.Get("Content-Type")

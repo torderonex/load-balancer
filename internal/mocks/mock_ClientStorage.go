@@ -228,9 +228,20 @@ func (_c *MockClientStorage_SaveClient_Call) RunAndReturn(run func(clientID stri
 }
 
 // SetClientCapacity provides a mock function for the type MockClientStorage
-func (_mock *MockClientStorage) SetClientCapacity(clientID string, capacity int) {
-	_mock.Called(clientID, capacity)
-	return
+func (_mock *MockClientStorage) SetClientCapacity(clientID string, capacity int) error {
+	ret := _mock.Called(clientID, capacity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetClientCapacity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, int) error); ok {
+		r0 = returnFunc(clientID, capacity)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
 }
 
 // MockClientStorage_SetClientCapacity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetClientCapacity'
@@ -252,20 +263,31 @@ func (_c *MockClientStorage_SetClientCapacity_Call) Run(run func(clientID string
 	return _c
 }
 
-func (_c *MockClientStorage_SetClientCapacity_Call) Return() *MockClientStorage_SetClientCapacity_Call {
-	_c.Call.Return()
+func (_c *MockClientStorage_SetClientCapacity_Call) Return(err error) *MockClientStorage_SetClientCapacity_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockClientStorage_SetClientCapacity_Call) RunAndReturn(run func(clientID string, capacity int)) *MockClientStorage_SetClientCapacity_Call {
-	_c.Run(run)
+func (_c *MockClientStorage_SetClientCapacity_Call) RunAndReturn(run func(clientID string, capacity int) error) *MockClientStorage_SetClientCapacity_Call {
+	_c.Call.Return(run)
 	return _c
 }
 
 // SetClientRate provides a mock function for the type MockClientStorage
-func (_mock *MockClientStorage) SetClientRate(clientID string, rate int) {
-	_mock.Called(clientID, rate)
-	return
+func (_mock *MockClientStorage) SetClientRate(clientID string, rate int) error {
+	ret := _mock.Called(clientID, rate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetClientRate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, int) error); ok {
+		r0 = returnFunc(clientID, rate)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
 }
 
 // MockClientStorage_SetClientRate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetClientRate'
@@ -287,47 +309,12 @@ func (_c *MockClientStorage_SetClientRate_Call) Run(run func(clientID string, ra
 	return _c
 }
 
-func (_c *MockClientStorage_SetClientRate_Call) Return() *MockClientStorage_SetClientRate_Call {
-	_c.Call.Return()
+func (_c *MockClientStorage_SetClientRate_Call) Return(err error) *MockClientStorage_SetClientRate_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockClientStorage_SetClientRate_Call) RunAndReturn(run func(clientID string, rate int)) *MockClientStorage_SetClientRate_Call {
-	_c.Run(run)
-	return _c
-}
-
-// SetClientStatus provides a mock function for the type MockClientStorage
-func (_mock *MockClientStorage) SetClientStatus(clientID string, isBanned bool) {
-	_mock.Called(clientID, isBanned)
-	return
-}
-
-// MockClientStorage_SetClientStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetClientStatus'
-type MockClientStorage_SetClientStatus_Call struct {
-	*mock.Call
-}
-
-// SetClientStatus is a helper method to define mock.On call
-//   - clientID
-//   - isBanned
-func (_e *MockClientStorage_Expecter) SetClientStatus(clientID interface{}, isBanned interface{}) *MockClientStorage_SetClientStatus_Call {
-	return &MockClientStorage_SetClientStatus_Call{Call: _e.mock.On("SetClientStatus", clientID, isBanned)}
-}
-
-func (_c *MockClientStorage_SetClientStatus_Call) Run(run func(clientID string, isBanned bool)) *MockClientStorage_SetClientStatus_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(bool))
-	})
-	return _c
-}
-
-func (_c *MockClientStorage_SetClientStatus_Call) Return() *MockClientStorage_SetClientStatus_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockClientStorage_SetClientStatus_Call) RunAndReturn(run func(clientID string, isBanned bool)) *MockClientStorage_SetClientStatus_Call {
-	_c.Run(run)
+func (_c *MockClientStorage_SetClientRate_Call) RunAndReturn(run func(clientID string, rate int) error) *MockClientStorage_SetClientRate_Call {
+	_c.Call.Return(run)
 	return _c
 }

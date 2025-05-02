@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,15 +43,28 @@ func (b *Balancer) AddBackends(urls []string) {
 }
 
 func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	clientID := r.RemoteAddr
+	clientAddr := r.RemoteAddr
+	clientIP := clientAddr
 
-	if !b.limiter.Allow(clientID) {
-		slog.Info(fmt.Sprintf("Клиент %s превысил лимит", clientID))
+	// Обработка IPv4: "127.0.0.1:1234" -> "127.0.0.1"
+	if idx := strings.LastIndex(clientAddr, ":"); idx != -1 && !strings.HasPrefix(clientAddr, "[") {
+		clientIP = clientAddr[:idx]
+	}
+
+	// Обработка IPv6: "[::1]:1234" -> "::1"
+	if strings.HasPrefix(clientAddr, "[") && strings.Contains(clientAddr, "]:") {
+		clientIP = strings.TrimPrefix(clientAddr, "[")
+		if idx := strings.Index(clientIP, "]:"); idx != -1 {
+			clientIP = clientIP[:idx]
+		}
+	}
+	if !b.limiter.Allow(clientIP) {
+		slog.Info(fmt.Sprintf("Клиент %s превысил лимит", clientIP))
 		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		return
 	}
 
-	slog.Info(fmt.Sprintf("Получен запрос: %s %s от %s", r.Method, r.URL.Path, clientID))
+	slog.Info(fmt.Sprintf("Получен запрос: %s %s от %s", r.Method, r.URL.Path, clientAddr))
 
 	backend := b.strategy.NextBackend(b.backends)
 	if backend == nil {
@@ -60,6 +74,7 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Проксирование запроса
+	slog.Info(fmt.Sprintf("Проксирование запроса к %s", backend.URL.String()), slog.String("from", clientIP))
 	proxy := httputil.NewSingleHostReverseProxy(backend.URL)
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		slog.Error("Ошибка проксирования к %s: %v", backend.URL.String(), err)

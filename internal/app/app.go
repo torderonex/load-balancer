@@ -35,7 +35,7 @@ func MustNew(config *config.Config) *App {
 		cfg: config,
 	}
 
-	storage := storage.New()
+	storage := storage.New(config)
 	app.storage = storage
 
 	//rate limiter init
@@ -59,8 +59,6 @@ func MustNew(config *config.Config) *App {
 }
 
 func (a *App) Run() {
-	const op = "App.Run"
-
 	go a.balancer.StartHealthCheck(a.cfg.HealthCheck.CheckInterval)
 
 	go a.limiter.StartRefill(a.cfg.RateLimiter.RefillInterval)
@@ -114,4 +112,16 @@ func (a *App) Run() {
 
 func (a *App) Start() {
 	a.Run()
+}
+
+func (a *App) GetBalancer() *balancer.Balancer {
+	return a.balancer
+}
+
+func (a *App) GetLimiter() limiter.Limiter {
+	return a.limiter
+}
+
+func (a *App) GetStorage() *storage.Storage {
+	return a.storage
 }

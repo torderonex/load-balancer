@@ -28,6 +28,7 @@ var (
 	ErrInvalidAction    = errors.New("invalid action. Use 'ban' or 'unban'")
 	ErrClientIDRequired = errors.New("client ID is required")
 	ErrCapacityRequired = errors.New("capacity must be greater than 0")
+	ErrClientNotFound   = errors.New("client not found")
 )
 
 // json parse errors

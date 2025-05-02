@@ -20,7 +20,7 @@ type Limiter interface {
 // TokenBucket основной лимитер, использующий алгоритм Token Bucket
 type TokenBucket struct {
 	storage     storage.ClientStorage
-	defaultRate int // токенов в секунду
+	defaultRate int // токенов за единицу интервала
 	capacity    int // максимальное количество токенов
 	mu          sync.RWMutex
 }
@@ -43,6 +43,7 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 	if !exists {
 		// Новый клиент получает полный bucket
 		client = &model.Client{
+			IP:         clientID,
 			Tokens:     tb.capacity,
 			Capacity:   tb.capacity,
 			Rate:       tb.defaultRate,

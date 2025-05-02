@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/torderonex/load-balancer/internal/storage"
@@ -18,11 +20,19 @@ func NewHandler(storage *storage.Storage) *Handler {
 	}
 }
 
-func (h *Handler) InitRoutes() *http.ServeMux {
+func (h *Handler) InitRoutes() http.Handler {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/client/rate", h.SetClientRate)
 	router.HandleFunc("/client/capacity", h.SetClientCapacity)
+	router.HandleFunc("/client", h.GetClient)
 
-	return router
+	return h.logMiddleware(router)
+}
+
+func (h *Handler) logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Debug(fmt.Sprintf("Request: %s %s", r.Method, r.URL.Path))
+		next.ServeHTTP(w, r)
+	})
 }

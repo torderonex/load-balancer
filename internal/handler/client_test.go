@@ -31,7 +31,7 @@ func TestSetClientRate(t *testing.T) {
 			contentType:    "application/json",
 			expectedStatus: http.StatusOK,
 			mockSetup: func(mockStorage *mockStorage.MockClientStorage) {
-				mockStorage.On("SetClientRate", "127.0.0.1", 50).Return()
+				mockStorage.On("SetClientRate", "127.0.0.1", 50).Return(nil)
 			},
 		},
 		{
@@ -113,7 +113,7 @@ func TestSetClientCapacity(t *testing.T) {
 			contentType:    "application/json",
 			expectedStatus: http.StatusOK,
 			mockSetup: func(mockStorage *mockStorage.MockClientStorage) {
-				mockStorage.On("SetClientCapacity", "127.0.0.1", 200).Return()
+				mockStorage.On("SetClientCapacity", "127.0.0.1", 200).Return(nil)
 			},
 		},
 		{
