@@ -35,7 +35,7 @@ func (b *Balancer) AddBackends(urls []string) {
 	for _, u := range urls {
 		tmp, err := url.Parse(u)
 		if err != nil {
-			slog.Error("Ошибка при парсинге URL", sl.Err(err))
+			slog.Warn("Error parsing URL", sl.Err(err))
 			continue
 		}
 		b.backends = append(b.backends, model.NewBackend(tmp))
@@ -59,25 +59,25 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !b.limiter.Allow(clientIP) {
-		slog.Info(fmt.Sprintf("Клиент %s превысил лимит", clientIP))
+		slog.Info(fmt.Sprintf("Client %s exceeded the limit", clientIP))
 		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		return
 	}
 
-	slog.Info(fmt.Sprintf("Получен запрос: %s %s от %s", r.Method, r.URL.Path, clientAddr))
+	slog.Info(fmt.Sprintf("Received request: %s %s from %s", r.Method, r.URL.Path, clientAddr))
 
 	backend := b.strategy.NextBackend(b.backends)
 	if backend == nil {
-		slog.Error("Нет доступных бэкендов")
+		slog.Error("No available backends")
 		http.Error(w, "Service Unavailable", http.StatusServiceUnavailable)
 		return
 	}
 
 	// Проксирование запроса
-	slog.Info(fmt.Sprintf("Проксирование запроса к %s", backend.URL.String()), slog.String("from", clientIP))
+	slog.Info(fmt.Sprintf("Proxy request to %s", backend.URL.String()), slog.String("from", clientIP))
 	proxy := httputil.NewSingleHostReverseProxy(backend.URL)
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		slog.Error("Ошибка проксирования к %s: %v", backend.URL.String(), err)
+		slog.Error(fmt.Sprintf("Error proxying to %s: %v", backend.URL.String(), err))
 		backend.SetAlive(false)
 		backend.LastError = err
 
@@ -95,13 +95,13 @@ func (b *Balancer) StartHealthCheck(interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			slog.Debug("Проверка доступности бэкендов")
+			slog.Debug("Backends health check")
 			b.mu.RLock()
 			for _, back := range b.backends {
 				go func(b *model.Backend) {
 					alive := b.CheckHealth()
 					if b.IsAlive() != alive {
-						slog.Info(fmt.Sprintf("Изменение статуса бэкенда %s: %v -> %v",
+						slog.Info(fmt.Sprintf("Backends health status changed: %s: %v -> %v",
 							b.URL.String(), b.IsAlive(), alive))
 					}
 					b.SetAlive(alive)

@@ -37,11 +37,9 @@ func NewTokenBucket(config *config.RateLimiter, storage *storage.Storage) Limite
 // Allow проверяет, разрешен ли запрос от данного клиента
 // Возвращает true, если запрос разрешен, и false, если превышен лимит
 func (tb *TokenBucket) Allow(clientID string) bool {
-	// Получаем или создаем клиента
 	client, exists := tb.storage.GetClient(clientID)
 	slog.Debug("Проверка клиента", "clientID", clientID, "exists", exists)
 	if !exists {
-		// Новый клиент получает полный bucket
 		client = &model.Client{
 			IP:         clientID,
 			Tokens:     tb.capacity,
@@ -54,7 +52,6 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 	}
 	slog.Info("client", "client", client)
 
-	// Проверяем и забираем токен
 	if client.Tokens > 0 {
 		client.Tokens--
 		tb.storage.SaveClient(clientID, client)

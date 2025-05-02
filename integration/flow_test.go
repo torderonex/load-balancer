@@ -105,10 +105,10 @@ func TestBalancer(t *testing.T) {
 		for k, v := range responses {
 			fmt.Println(k, v)
 		}
-		require.Len(t, responses, 3, "Запросы должны быть распределены между всеми бэкендами")
+		require.Len(t, responses, 3, "Requests should be distributed among all backends")
 
 		for _, count := range responses {
-			assert.True(t, count >= 2 && count <= 4, "Каждый бэкенд должен получить примерно равное количество запросов")
+			assert.True(t, count >= 2 && count <= 4, "Each backend should receive approximately equal number of requests")
 		}
 	})
 
@@ -129,7 +129,7 @@ func TestBalancer(t *testing.T) {
 			}
 			bodyStr := string(body[:n])
 
-			assert.NotContains(t, bodyStr, "Response from backend 0", "Запрос не должен направляться на недоступный бэкенд")
+			assert.NotContains(t, bodyStr, "Response from backend 0", "Request should not be routed to unavailable backend")
 
 			resp.Body.Close()
 		}
@@ -158,7 +158,7 @@ func TestRateLimiter(t *testing.T) {
 
 		resp, err := client.Get(server.URL)
 		require.NoError(t, err)
-		require.Equal(t, http.StatusTooManyRequests, resp.StatusCode, "Должен быть возвращен статус 429 при превышении лимита")
+		require.Equal(t, http.StatusTooManyRequests, resp.StatusCode, "Status 429 should be returned when rate limit is exceeded")
 		resp.Body.Close()
 	})
 }
@@ -185,8 +185,8 @@ func TestApiServer(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 
 		client, exists := storage.GetClient("test-client")
-		require.True(t, exists)
-		require.Equal(t, 50, client.Rate)
+		require.True(t, exists, "Client should exist in storage")
+		require.Equal(t, 50, client.Rate, "Client rate should be updated to 50")
 	})
 
 	t.Run("Set Client Capacity", func(t *testing.T) {
@@ -219,14 +219,8 @@ func TestApiServer(t *testing.T) {
 	})
 }
 
-// Тест полной системы (все компоненты вместе)
 func TestFullSystem(t *testing.T) {
-	// Пропускаем если запущен не полный набор тестов
-	// if os.Getenv("RUN_FULL_INTEGRATION") != "true" {
-	// 	t.Skip("Пропускаем полный системный тест, для запуска установите RUN_FULL_INTEGRATION=true")
-	// }
 
-	// Запускаем тестовые бэкенды
 	servers, backendURLs := startTestBackends(t, 3)
 	defer func() {
 		for _, server := range servers {
@@ -234,19 +228,15 @@ func TestFullSystem(t *testing.T) {
 		}
 	}()
 
-	// Создаем конфигурацию
 	cfg := setupTestConfig()
 	cfg.Balancer.Backends = backendURLs
 	cfg.RateLimiter.DefaultRate = 5
 	cfg.RateLimiter.Capacity = 5
 
-	// Инициализируем приложение
 	application := app.MustNew(cfg)
 
-	// Запускаем приложение в отдельной горутине
 	go application.Start()
 
-	// Даем время на запуск
 	time.Sleep(500 * time.Millisecond)
 
 	t.Run("Balancer Distribution", func(t *testing.T) {
@@ -265,7 +255,7 @@ func TestFullSystem(t *testing.T) {
 			resp.Body.Close()
 		}
 
-		require.True(t, len(responses) > 1, "Запросы должны распределяться между разными бэкендами")
+		require.True(t, len(responses) > 1, "Requests should be distributed between different backends")
 	})
 
 	t.Run("API for Client Management", func(t *testing.T) {

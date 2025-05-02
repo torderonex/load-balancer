@@ -99,7 +99,6 @@ func (h *Handler) GetClient(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(client)
 }
 
-// parseJSONBody вспомогательная функция для парсинга JSON тела запроса
 func parseJSONBody(r *http.Request, v interface{}) error {
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/json" {
