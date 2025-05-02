@@ -16,7 +16,7 @@ health_check:
   check_interval: 10s
 balancer:
   backends:
-    - http://localhost:6969
-    - http://localhost:6970
-    - http://localhost:6971
+    - http://host.docker.internal:6969
+    - http://host.docker.internal:6970
+    - http://host.docker.internal:6971
   strategy: round_robin

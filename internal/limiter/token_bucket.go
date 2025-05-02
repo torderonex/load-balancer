@@ -20,7 +20,7 @@ type Limiter interface {
 // TokenBucket основной лимитер, использующий алгоритм Token Bucket
 type TokenBucket struct {
 	storage     storage.ClientStorage
-	defaultRate int // токенов за единицу интервала
+	defaultRate int // токенов за секунду
 	capacity    int // максимальное количество токенов
 	mu          sync.RWMutex
 }
@@ -52,6 +52,7 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 	}
 	slog.Info("client", "client", client)
 
+	// Проверяем и забираем токен
 	if client.Tokens > 0 {
 		client.Tokens--
 		tb.storage.SaveClient(clientID, client)
