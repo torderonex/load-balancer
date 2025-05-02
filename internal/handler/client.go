@@ -1,64 +1,130 @@
 package handler
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
-	"strconv"
 )
 
-func (h *Handler) SetClientStatus(w http.ResponseWriter, r *http.Request) {
-	action := r.URL.Query().Get("action")
-	clientID := r.URL.Query().Get("clientID")
+type StatusRequest struct {
+	ClientID string `json:"clientId"`
+	Action   string `json:"action"`
+}
 
-	if clientID == "" {
-		http.Error(w, "Client ID is required", http.StatusBadRequest)
+// RateRequest структура для парсинга запроса изменения скорости
+type RateRequest struct {
+	ClientID string `json:"clientId"`
+	Rate     int    `json:"rate"`
+}
+
+// CapacityRequest структура для парсинга запроса изменения емкости
+type CapacityRequest struct {
+	ClientID string `json:"clientId"`
+	Capacity int    `json:"capacity"`
+}
+
+func (h *Handler) SetClientStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		newErrorResponse(w, r, http.StatusMethodNotAllowed, errors.New("method not allowed"))
 		return
 	}
 
-	switch action {
+	var req StatusRequest
+	if err := parseJSONBody(r, &req); err != nil {
+		newErrorResponse(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if req.ClientID == "" {
+		newErrorResponse(w, r, http.StatusBadRequest, errors.New("client ID is required"))
+		return
+	}
+
+	switch req.Action {
 	case "ban":
-		h.storage.SetClientStatus(clientID, true)
+		h.storage.SetClientStatus(req.ClientID, true)
 	case "unban":
-		h.storage.SetClientStatus(clientID, false)
+		h.storage.SetClientStatus(req.ClientID, false)
 	default:
-		http.Error(w, "Invalid action. Use 'ban' or 'unban'", http.StatusBadRequest)
+		newErrorResponse(w, r, http.StatusBadRequest, errors.New("invalid action. Use 'ban' or 'unban'"))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
 func (h *Handler) SetClientRate(w http.ResponseWriter, r *http.Request) {
-	clientID := r.URL.Query().Get("clientID")
-	rate := r.URL.Query().Get("rate")
-
-	if clientID == "" || rate == "" {
-		http.Error(w, "Client ID and rate are required", http.StatusBadRequest)
+	if r.Method != http.MethodPost {
+		newErrorResponse(w, r, http.StatusMethodNotAllowed, errors.New("method not allowed"))
 		return
 	}
 
-	rateInt, err := strconv.Atoi(rate)
-	if err != nil {
-		http.Error(w, "Invalid rate", http.StatusBadRequest)
+	var req RateRequest
+	if err := parseJSONBody(r, &req); err != nil {
+		newErrorResponse(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	h.storage.SetClientRate(clientID, rateInt)
+	if req.ClientID == "" {
+		newErrorResponse(w, r, http.StatusBadRequest, errors.New("client ID is required"))
+		return
+	}
+
+	h.storage.SetClientRate(req.ClientID, req.Rate)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
 func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
-	clientID := r.URL.Query().Get("clientID")
-	capacity := r.URL.Query().Get("capacity")
-
-	if clientID == "" || capacity == "" {
-		http.Error(w, "Client ID and capacity are required", http.StatusBadRequest)
+	if r.Method != http.MethodPost {
+		newErrorResponse(w, r, http.StatusMethodNotAllowed, errors.New("method not allowed"))
 		return
 	}
 
-	capacityInt, err := strconv.Atoi(capacity)
+	var req CapacityRequest
+	if err := parseJSONBody(r, &req); err != nil {
+		newErrorResponse(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if req.ClientID == "" {
+		newErrorResponse(w, r, http.StatusBadRequest, errors.New("client ID is required"))
+		return
+	}
+
+	if req.Capacity <= 0 {
+		newErrorResponse(w, r, http.StatusBadRequest, errors.New("capacity must be greater than 0"))
+		return
+	}
+
+	h.storage.SetClientCapacity(req.ClientID, req.Capacity)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+// parseJSONBody вспомогательная функция для парсинга JSON тела запроса
+func parseJSONBody(r *http.Request, v interface{}) error {
+	contentType := r.Header.Get("Content-Type")
+	if contentType != "application/json" {
+		return errors.New("Content-Type must be application/json")
+	}
+
+	body, err := io.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
-		http.Error(w, "Invalid capacity", http.StatusBadRequest)
-		return
+		return errors.New("error reading request body")
+	}
+	defer r.Body.Close()
+
+	if err := json.Unmarshal(body, v); err != nil {
+		return errors.New("invalid JSON format")
 	}
 
-	h.storage.SetClientCapacity(clientID, capacityInt)
+	return nil
 }
