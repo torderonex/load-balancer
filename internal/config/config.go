@@ -16,6 +16,20 @@ type Config struct {
 	ApiServer   ApiServer   `yaml:"api_server"`
 	HealthCheck HealthCheck `yaml:"health_check"`
 	Balancer    Balancer    `yaml:"balancer"`
+	Storage     Storage     `yaml:"storage"`
+}
+
+type Storage struct {
+	Type  string `yaml:"type" env:"STORAGE_TYPE" env-default:"memory"`
+	Redis Redis  `yaml:"redis"`
+}
+
+type Redis struct {
+	Host     string `yaml:"host" env:"REDIS_HOST" env-default:"redis"`
+	Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
+	DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
+	Password string `yaml:"password" env:"REDIS_PASSWORD"`
+	Prefix   string `yaml:"prefix" env:"REDIS_PREFIX" env-default:"lb"`
 }
 
 type Balancer struct {

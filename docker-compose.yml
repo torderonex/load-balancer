@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  load-balancer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  
+      - "8081:8081"  
+    depends_on:
+      - redis
+    environment:
+      - CONFIG_PATH=/app/config/docker.yml
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=  
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"  
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes  
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+
+volumes:
+  redis-data:  
+
+networks:
+  app-network:
+    driver: bridge

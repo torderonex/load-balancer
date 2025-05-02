@@ -93,3 +93,7 @@ func (ms *clientStorage) SetClientCapacity(clientID string, capacity int) error 
 	ms.clients[clientID].Tokens = capacity
 	return nil
 }
+
+func (ms *clientStorage) Close() error {
+	return nil
+}

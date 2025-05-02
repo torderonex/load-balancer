@@ -1,3 +1,11 @@
+storage:
+  type: redis
+  redis:
+    host: redis
+    port: 6379
+    db: 0
+    password: ""
+    prefix: "lb"
 logger:
   level: debug
 proxy_server:
@@ -8,9 +16,9 @@ api_server:
   read_timeout: 10s
 rate_limit:
   enabled: true
-  default_rate: 1
-  capacity: 1
-  refill_interval: 5s
+  default_rate: 50
+  capacity: 100
+  refill_interval: 1s
 health_check:
   enabled: true
   check_interval: 10s
