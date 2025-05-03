@@ -1,25 +1,15 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/torderonex/load-balancer/internal/model"
 )
 
-type errorResponse struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
+// чтобы не писать model.NewErrorResponse(w, r, status, message) каждый раз
 func newErrorResponse(w http.ResponseWriter, r *http.Request, status int, message error) {
-	response := errorResponse{
-		Message: message.Error(),
-		Code:    status,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(response)
+	model.NewErrorResponse(w, r, status, message)
 }
 
 // request errors

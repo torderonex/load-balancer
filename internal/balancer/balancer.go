@@ -2,6 +2,7 @@ package balancer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -70,7 +71,7 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	backend := b.strategy.NextBackend(b.backends)
 	if backend == nil {
 		slog.Error("No available backends")
-		http.Error(w, "Service Unavailable", http.StatusServiceUnavailable)
+		model.NewErrorResponse(w, r, http.StatusServiceUnavailable, errors.New("No available services"))
 		return
 	}
 

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/torderonex/load-balancer/internal/model"
 )
 
 type StatusRequest struct {
@@ -78,19 +80,19 @@ func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetClient(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		newErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
+		model.NewErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 		return
 	}
 
 	clientID := r.URL.Query().Get("clientId")
 	if clientID == "" {
-		newErrorResponse(w, r, http.StatusBadRequest, ErrClientIDRequired)
+		model.NewErrorResponse(w, r, http.StatusBadRequest, ErrClientIDRequired)
 		return
 	}
 
 	client, ok := h.storage.GetClient(clientID)
 	if !ok {
-		newErrorResponse(w, r, http.StatusNotFound, ErrClientNotFound)
+		model.NewErrorResponse(w, r, http.StatusNotFound, ErrClientNotFound)
 		return
 	}
 
