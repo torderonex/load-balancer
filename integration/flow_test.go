@@ -2,6 +2,7 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -77,7 +78,7 @@ func TestBalancer(t *testing.T) {
 		}
 	}()
 
-	_, server := setupTestApp(t, backendURLs)
+	_, server := setupTestApp(t, backendURLs, withCustomRateLimit(100, 100, 50*time.Second))
 	defer server.Close()
 
 	t.Run("Round Robin Distribution", func(t *testing.T) {
@@ -301,9 +302,10 @@ func setupTestApp(t *testing.T, backendURLs []string, options ...func(*config.Co
 	application := app.MustNew(cfg)
 
 	server := httptest.NewServer(application.GetBalancer())
-
-	go application.GetBalancer().StartHealthCheck(100 * time.Millisecond)
-	go application.GetLimiter().StartRefill(100 * time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go application.GetBalancer().StartHealthCheck(ctx, 100*time.Millisecond)
+	go application.GetLimiter().StartRefill(ctx, 100*time.Millisecond)
 
 	return application, server
 }

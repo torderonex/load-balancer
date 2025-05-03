@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -79,7 +80,7 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		slog.Error(fmt.Sprintf("Error proxying to %s: %v", backend.URL.String(), err))
 		backend.SetAlive(false)
-		backend.LastError = err
+		backend.SetLastError(err)
 
 		// Повторная попытка с другим бэкендом
 		b.ServeHTTP(w, r)
@@ -88,7 +89,7 @@ func (b *Balancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	proxy.ServeHTTP(w, r)
 }
 
-func (b *Balancer) StartHealthCheck(interval time.Duration) {
+func (b *Balancer) StartHealthCheck(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -97,8 +98,11 @@ func (b *Balancer) StartHealthCheck(interval time.Duration) {
 		case <-ticker.C:
 			slog.Debug("Backends health check")
 			b.mu.RLock()
+			var wg sync.WaitGroup
 			for _, back := range b.backends {
+				wg.Add(1)
 				go func(b *model.Backend) {
+					defer wg.Done()
 					alive := b.CheckHealth()
 					if b.IsAlive() != alive {
 						slog.Info(fmt.Sprintf("Backends health status changed: %s: %v -> %v",
@@ -108,6 +112,25 @@ func (b *Balancer) StartHealthCheck(interval time.Duration) {
 				}(back)
 			}
 			b.mu.RUnlock()
+
+			done := make(chan struct{})
+			go func() {
+				wg.Wait()
+				close(done)
+			}()
+
+			select {
+			case <-done:
+			case <-ctx.Done():
+				slog.Info("Health check stopped")
+				return
+			case <-time.After(interval / 2):
+				slog.Warn("Some health checks timed out")
+			}
+
+		case <-ctx.Done():
+			slog.Info("Health check loop stopped: context cancelled")
+			return
 		}
 	}
 }

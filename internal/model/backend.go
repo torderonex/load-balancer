@@ -28,6 +28,12 @@ func (b *Backend) SetAlive(alive bool) {
 	b.Alive = alive
 }
 
+func (b *Backend) SetLastError(err error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.LastError = err
+}
+
 func (b *Backend) IsAlive() bool {
 	return b.Alive
 }

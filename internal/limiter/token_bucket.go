@@ -1,6 +1,7 @@
 package limiter
 
 import (
+	"context"
 	"log/slog"
 	"sync"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 type Limiter interface {
 	Allow(clientID string) bool
-	StartRefill(interval time.Duration)
+	StartRefill(ctx context.Context, interval time.Duration)
 }
 
 // TokenBucket основной лимитер, использующий алгоритм Token Bucket
@@ -63,32 +64,36 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 }
 
 // StartRefill запускает периодическое пополнение токенов для всех клиентов
-func (tb *TokenBucket) StartRefill(interval time.Duration) {
+func (tb *TokenBucket) StartRefill(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
 	go func() {
-		defer ticker.Stop()
-
-		for range ticker.C {
-			clientIDs, err := tb.storage.GetAllClientIDs()
-			if err != nil {
-				continue
-			}
-
-			now := time.Now()
-			for _, id := range clientIDs {
-				client, exists := tb.storage.GetClient(id)
-				if !exists {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				clientIDs, err := tb.storage.GetAllClientIDs()
+				if err != nil {
 					continue
 				}
 
-				elapsed := now.Sub(client.LastRefill).Seconds()
-				tokensToAdd := int(elapsed * float64(client.Rate))
+				now := time.Now()
+				for _, id := range clientIDs {
+					client, exists := tb.storage.GetClient(id)
+					if !exists {
+						continue
+					}
 
-				if tokensToAdd > 0 {
-					client.Tokens = min(client.Tokens+tokensToAdd, client.Capacity)
-					client.LastRefill = now
-					tb.storage.SaveClient(id, client)
+					elapsed := now.Sub(client.LastRefill).Seconds()
+					tokensToAdd := int(elapsed * float64(client.Rate))
+
+					if tokensToAdd > 0 {
+						client.Tokens = min(client.Tokens+tokensToAdd, client.Capacity)
+						client.LastRefill = now
+						tb.storage.SaveClient(id, client)
+					}
 				}
 			}
 		}

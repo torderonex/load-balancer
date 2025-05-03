@@ -59,9 +59,12 @@ func MustNew(config *config.Config) *App {
 }
 
 func (a *App) Run() {
-	go a.balancer.StartHealthCheck(a.cfg.HealthCheck.CheckInterval)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	go a.limiter.StartRefill(a.cfg.RateLimiter.RefillInterval)
+	go a.balancer.StartHealthCheck(ctx, a.cfg.HealthCheck.CheckInterval)
+
+	go a.limiter.StartRefill(ctx, a.cfg.RateLimiter.RefillInterval)
 
 	errChan := make(chan error, 2)
 
@@ -94,7 +97,6 @@ func (a *App) Run() {
 	slog.Info("Starting graceful shutdown...")
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer shutdownCancel()
-
 	if err := a.restServer.Shutdown(shutdownCtx); err != nil {
 		slog.Error("REST API server graceful shutdown failed", sl.Err(err))
 	} else {
