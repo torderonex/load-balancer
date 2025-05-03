@@ -168,7 +168,7 @@ func TestApiServer(t *testing.T) {
 	cfg := setupTestConfig()
 	storage := storage.New(cfg)
 	h := handler.NewHandler(storage)
-	router := h.InitRoutes()
+	router := h.InitRoutes(&cfg.ApiServer)
 
 	t.Run("Set Client Rate", func(t *testing.T) {
 		rateRequest := handler.RateRequest{

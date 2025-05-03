@@ -49,7 +49,7 @@ func MustNew(config *config.Config) *App {
 
 	//rest api server start
 	handler := handler.NewHandler(storage)
-	restServer := server.New(strconv.Itoa(config.ApiServer.Port), handler.InitRoutes(), config.ApiServer.ReadTimeout)
+	restServer := server.New(strconv.Itoa(config.ApiServer.Port), handler.InitRoutes(&config.ApiServer), config.ApiServer.ReadTimeout)
 	app.restServer = restServer
 
 	//balancer server start

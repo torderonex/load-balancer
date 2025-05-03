@@ -4,27 +4,43 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"github.com/torderonex/load-balancer/internal/model"
 )
 
-type StatusRequest struct {
-	ClientID string `json:"clientId"`
-	Action   string `json:"action"`
-}
-
 // RateRequest структура для парсинга запроса изменения скорости
+// @Description Запрос на изменение скорости пополнения токенов для клиента
 type RateRequest struct {
+	// @Description ID клиента
+	// @Required
 	ClientID string `json:"clientId"`
-	Rate     int    `json:"rate"`
+	// @Description Скорость пополнения токенов (в токенах в секунду)
+	// @Required
+	// @Minimum 0
+	Rate int `json:"rate"`
 }
 
 // CapacityRequest структура для парсинга запроса изменения емкости
+// @Description Запрос на изменение максимальной емкости корзины токенов для клиента
 type CapacityRequest struct {
+	// @Description ID клиента
+	// @Required
 	ClientID string `json:"clientId"`
-	Capacity int    `json:"capacity"`
+	// @Description Максимальная емкость корзины токенов
+	// @Required
+	// @Minimum 1
+	Capacity int `json:"capacity"`
 }
 
+// SetClientRate устанавливает скорость пополнения токенов для клиента
+// @Summary Установка скорости пополнения токенов
+// @Description Устанавливает скорость, с которой пополняется корзина токенов клиента
+// @Tags клиенты
+// @Accept json
+// @Produce json
+// @Param request body RateRequest true "Данные для установки скорости"
+// @Success 200 {object} map[string]string "Успешный ответ"
+// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
+// @Failure 405 {object} model.ErrorResponse "Метод не разрешен"
+// @Router /client/rate [post]
 func (h *Handler) SetClientRate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		newErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
@@ -49,6 +65,17 @@ func (h *Handler) SetClientRate(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
+// SetClientCapacity устанавливает максимальную емкость корзины токенов для клиента
+// @Summary Установка емкости корзины токенов
+// @Description Устанавливает максимальное количество токенов, которое может накопить клиент
+// @Tags клиенты
+// @Accept json
+// @Produce json
+// @Param request body CapacityRequest true "Данные для установки емкости"
+// @Success 200 {object} map[string]string "Успешный ответ"
+// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
+// @Failure 405 {object} model.ErrorResponse "Метод не разрешен"
+// @Router /client/capacity [post]
 func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		newErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
@@ -78,21 +105,32 @@ func (h *Handler) SetClientCapacity(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
+// GetClient получает информацию о клиенте
+// @Summary Получение информации о клиенте
+// @Description Возвращает информацию о клиенте по его ID
+// @Tags клиенты
+// @Produce json
+// @Param clientId query string true "ID клиента"
+// @Success 200 {object} model.Client "Информация о клиенте"
+// @Failure 400 {object} model.ErrorResponse "Ошибка в запросе"
+// @Failure 404 {object} model.ErrorResponse "Клиент не найден"
+// @Failure 405 {object} model.ErrorResponse "Метод не разрешен"
+// @Router /client [get]
 func (h *Handler) GetClient(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		model.NewErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
+		newErrorResponse(w, r, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 		return
 	}
 
 	clientID := r.URL.Query().Get("clientId")
 	if clientID == "" {
-		model.NewErrorResponse(w, r, http.StatusBadRequest, ErrClientIDRequired)
+		newErrorResponse(w, r, http.StatusBadRequest, ErrClientIDRequired)
 		return
 	}
 
 	client, ok := h.storage.GetClient(clientID)
 	if !ok {
-		model.NewErrorResponse(w, r, http.StatusNotFound, ErrClientNotFound)
+		newErrorResponse(w, r, http.StatusNotFound, ErrClientNotFound)
 		return
 	}
 

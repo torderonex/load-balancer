@@ -7,3 +7,6 @@ build:
 test:
 	go test -v ./...
 
+swag:
+	@echo "Generating swagger docs.."
+	swag init -d="./cmd/app,./internal/handler,./internal/model"

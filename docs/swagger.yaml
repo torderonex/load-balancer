@@ -1,0 +1,156 @@
+definitions:
+  handler.CapacityRequest:
+    description: Запрос на изменение максимальной емкости корзины токенов для клиента
+    properties:
+      capacity:
+        description: |-
+          @Description Максимальная емкость корзины токенов
+          @Required
+          @Minimum 1
+        type: integer
+      clientId:
+        description: |-
+          @Description ID клиента
+          @Required
+        type: string
+    type: object
+  handler.RateRequest:
+    description: Запрос на изменение скорости пополнения токенов для клиента
+    properties:
+      clientId:
+        description: |-
+          @Description ID клиента
+          @Required
+        type: string
+      rate:
+        description: |-
+          @Description Скорость пополнения токенов (в токенах в секунду)
+          @Required
+          @Minimum 0
+        type: integer
+    type: object
+  model.Client:
+    properties:
+      capacity:
+        description: максимальная емкость bucket
+        type: integer
+      ip:
+        description: IP-адрес клиента
+        type: string
+      lastRefill:
+        description: время последнего пополнения
+        type: string
+      rate:
+        description: скорость пополнения токенов (токенов в секунду)
+        type: integer
+      tokens:
+        description: текущее количество токенов
+        type: integer
+    type: object
+  model.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /client:
+    get:
+      description: Возвращает информацию о клиенте по его ID
+      parameters:
+      - description: ID клиента
+        in: query
+        name: clientId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о клиенте
+          schema:
+            $ref: '#/definitions/model.Client'
+        "400":
+          description: Ошибка в запросе
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Клиент не найден
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "405":
+          description: Метод не разрешен
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Получение информации о клиенте
+      tags:
+      - клиенты
+  /client/capacity:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает максимальное количество токенов, которое может накопить
+        клиент
+      parameters:
+      - description: Данные для установки емкости
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CapacityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка в запросе
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "405":
+          description: Метод не разрешен
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Установка емкости корзины токенов
+      tags:
+      - клиенты
+  /client/rate:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает скорость, с которой пополняется корзина токенов клиента
+      parameters:
+      - description: Данные для установки скорости
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка в запросе
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "405":
+          description: Метод не разрешен
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Установка скорости пополнения токенов
+      tags:
+      - клиенты
+swagger: "2.0"

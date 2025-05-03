@@ -1,0 +1,219 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/client": {
+            "get": {
+                "description": "Возвращает информацию о клиенте по его ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "клиенты"
+                ],
+                "summary": "Получение информации о клиенте",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID клиента",
+                        "name": "clientId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о клиенте",
+                        "schema": {
+                            "$ref": "#/definitions/model.Client"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Клиент не найден",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Метод не разрешен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/capacity": {
+            "post": {
+                "description": "Устанавливает максимальное количество токенов, которое может накопить клиент",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "клиенты"
+                ],
+                "summary": "Установка емкости корзины токенов",
+                "parameters": [
+                    {
+                        "description": "Данные для установки емкости",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.CapacityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Метод не разрешен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/client/rate": {
+            "post": {
+                "description": "Устанавливает скорость, с которой пополняется корзина токенов клиента",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "клиенты"
+                ],
+                "summary": "Установка скорости пополнения токенов",
+                "parameters": [
+                    {
+                        "description": "Данные для установки скорости",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "405": {
+                        "description": "Метод не разрешен",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handler.CapacityRequest": {
+            "description": "Запрос на изменение максимальной емкости корзины токенов для клиента",
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "description": "@Description Максимальная емкость корзины токенов\n@Required\n@Minimum 1",
+                    "type": "integer"
+                },
+                "clientId": {
+                    "description": "@Description ID клиента\n@Required",
+                    "type": "string"
+                }
+            }
+        },
+        "handler.RateRequest": {
+            "description": "Запрос на изменение скорости пополнения токенов для клиента",
+            "type": "object",
+            "properties": {
+                "clientId": {
+                    "description": "@Description ID клиента\n@Required",
+                    "type": "string"
+                },
+                "rate": {
+                    "description": "@Description Скорость пополнения токенов (в токенах в секунду)\n@Required\n@Minimum 0",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Client": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "description": "максимальная емкость bucket",
+                    "type": "integer"
+                },
+                "ip": {
+                    "description": "IP-адрес клиента",
+                    "type": "string"
+                },
+                "lastRefill": {
+                    "description": "время последнего пополнения",
+                    "type": "string"
+                },
+                "rate": {
+                    "description": "скорость пополнения токенов (токенов в секунду)",
+                    "type": "integer"
+                },
+                "tokens": {
+                    "description": "текущее количество токенов",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
